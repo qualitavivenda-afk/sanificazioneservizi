@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="description" content="Scheda di controllo qualità per servizi igienici - con calcolo automatico del punteggio di conformità.">
+<meta name="theme-color" content="#003C80">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Scheda di Controllo Qualità Servizi Igienici</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html { overflow-x: hidden; }
+  body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: #f0f2f5;
+    color: #1a1a2e;
+    min-height: 100vh;
+    padding: 0;
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Header */
+  .header {
+    background: #003C80;
+    color: white;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+  }
+  .header-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 28px 32px 20px;
+    position: relative;
+    z-index: 1;
+  }
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+    line-height: 1.2;
+  }
+  .header p.subtitle {
+    font-size: 13px;
+    opacity: 0.75;
+    margin-top: 4px;
+  }
+  .scheda-badge {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    font-size: 13px;
+    font-weight: 600;
+    padding: 6px 14px;
+    border-radius: 6px;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+  }
+
+  /* Score band */
+  .score-band {
+    background: #002966;
+    padding: 16px 32px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+  }
+  .score-band-inner { max-width: 960px; margin: 0 auto; width: 100%; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
+  .score-block { text-align: center; min-width: 80px; }
+  .score-block .val { font-size: 28px; font-weight: 700; color: white; line-height: 1; }
+  .score-block .lbl { font-size: 11px; color: rgba(255,255,255,0.6); text-transform: uppercase; letter-spacing: 0.8px; margin-top: 2px; }
+  .score-divider { width: 1px; height: 40px; background: rgba(255,255,255,0.2); }
+  .score-bar-wrap { flex: 1; min-width: 200px; }
+  .score-bar-track { background: rgba(255,255,255,0.15); border-radius: 4px; height: 10px; position: relative; }
+  .score-bar-fill { height: 100%; border-radius: 4px; transition: width 0.4s ease, background 0.3s; }
+  .score-bar-threshold { position: absolute; top: -4px; height: 18px; width: 2px; background: rgba(255,255,255,0.6); }
+  .score-bar-label { font-size: 11px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+  .esito-pill {
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    transition: all 0.3s;
+  }
+  .esito-pill.conforme { background: #1a7a4a; color: white; }
+  .esito-pill.non-conforme { background: #c0392b; color: white; }
+  .esito-pill.nd { background: rgba(255,255,255,0.15); color: rgba(255,255,255,0.7); }
+
+  /* Main layout */
+  .main { max-width: 960px; margin: 0 auto; padding: 24px 16px 60px; }
+
+  /* Anagrafica */
+  .card {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #dde3ee;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .card-header {
+    background: #f7f9fc;
+    border-bottom: 1px solid #dde3ee;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-header h2 {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #003C80;
+  }
+  .card-body { padding: 20px; }
+
+  .field-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 14px;
+  }
+  .field-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: #6b7a99;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 5px;
+  }
+  .field-group input, .field-group select {
+    width: 100%;
+    border: 1px solid #dde3ee;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 14px;
+    color: #1a1a2e;
+    background: white;
+    outline: none;
+    transition: border-color 0.2s;
+    font-family: inherit;
+  }
+  .field-group input:focus, .field-group select:focus {
+    border-color: #003C80;
+    box-shadow: 0 0 0 2px rgba(0,60,128,0.1);
+  }
+  .field-group.full { grid-column: 1 / -1; }
+
+  .tipo-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    color: #6b7a99;
+    background: #f0f2f5;
+    border-color: #dde3ee;
+    margin-right: 8px;
+    margin-top: 4px;
+    user-select: none;
+  }
+  .tipo-badge.active {
+    background: #e8f0fb;
+    border-color: #003C80;
+    color: #003C80;
+  }
+
+  /* Elementi table */
+  .elements-section { margin-bottom: 20px; }
+  .elemento-block {
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #dde3ee;
+    margin-bottom: 14px;
+    overflow: hidden;
+  }
+  .elemento-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 18px;
+    cursor: pointer;
+    background: white;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .elemento-header:hover { background: #f7f9fc; }
+  .elemento-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1a1a2e;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .elem-color { width: 4px; height: 22px; border-radius: 2px; }
+  .elemento-score {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #6b7a99;
+  }
+  .elem-ratio {
+    font-weight: 700;
+    font-size: 15px;
+    min-width: 36px;
+    text-align: right;
+  }
+  .mini-bar { width: 80px; height: 6px; background: #eef0f5; border-radius: 3px; overflow: hidden; }
+  .mini-bar-fill { height: 100%; border-radius: 3px; transition: width 0.3s, background 0.3s; }
+  .chevron {
+    font-size: 16px;
+    color: #aab2c8;
+    transition: transform 0.25s;
+    display: inline-block;
+  }
+  .chevron.open { transform: rotate(180deg); }
+
+  .indicatori-wrap {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+  }
+  .indicatori-wrap.open { max-height: 5000px; }
+
+  .indicatore-row {
+    padding: 14px 18px;
+    border-top: 1px solid #f0f2f5;
+  }
+  .indicatore-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 6px;
+  }
+  .indicatore-testo {
+    font-size: 14px;
+    color: #1a1a2e;
+    font-weight: 500;
+    line-height: 1.35;
+  }
+  .indicatore-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+  .tolleranza { font-size: 12px; color: #6b7a99; }
+  .strumento { font-size: 11px; background: #f0f2f5; padding: 3px 8px; border-radius: 4px; color: #3a4a6b; font-weight: 600; }
+  .peso-badge {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 12px;
+  }
+  .peso-1 { background: #e8f4e8; color: #2a7a2a; }
+  .peso-2 { background: #fff3cd; color: #8a6000; }
+  .peso-3 { background: #fde8e8; color: #c0392b; }
+
+  .indicatore-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .pm-field {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .pm-field label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6b7a99;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Riscontro auto-calcolato */
+  .riscontro-auto {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 44px;
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 18px;
+    font-weight: 700;
+    font-size: 16px;
+    background: #f0f2f5;
+    color: #aab2c8;
+    transition: all 0.2s;
+  }
+  .riscontro-auto.pos { background: #e8f4e8; color: #1a7a4a; }
+  .riscontro-auto.neg { background: #fde8e8; color: #c0392b; }
+
+  .pm-input {
+    width: 68px;
+    height: 40px;
+    border: 1.5px solid #dde3ee;
+    border-radius: 8px;
+    padding: 5px 8px;
+    font-size: 16px;
+    text-align: center;
+    font-family: inherit;
+    color: #1a1a2e;
+    background: white;
+  }
+  .pm-input:focus { outline: none; border-color: #003C80; box-shadow: 0 0 0 3px rgba(0,60,128,0.12); }
+
+  /* Comfort section */
+  .comfort-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media(max-width: 540px) { .comfort-grid { grid-template-columns: 1fr; } }
+  .comfort-item { border: 1px solid #dde3ee; border-radius: 8px; padding: 14px 16px; }
+  .comfort-item h4 { font-size: 13px; font-weight: 700; color: #003C80; margin-bottom: 10px; }
+  .comfort-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .comfort-row:last-child { margin-bottom: 0; }
+  .comfort-label { font-size: 13px; color: #3a4a6b; }
+  .si-no-toggle {
+    display: inline-flex;
+    border-radius: 5px;
+    overflow: hidden;
+    border: 1px solid #dde3ee;
+  }
+  .si-no-btn {
+    padding: 4px 11px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    background: white;
+    color: #6b7a99;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .si-no-btn.si.active { background: #1a7a4a; color: white; }
+  .si-no-btn.no.active { background: #c0392b; color: white; }
+  .si-no-btn + .si-no-btn { border-left: 1px solid #dde3ee; }
+
+  /* Actions */
+  .actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+  }
+  .btn-primary {
+    padding: 11px 24px;
+    background: #003C80;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-primary:hover { background: #002966; }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-secondary {
+    padding: 11px 24px;
+    background: white;
+    color: #003C80;
+    border: 1.5px solid #003C80;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+  }
+  .btn-secondary:hover { background: #e8f0fb; }
+  .btn-danger {
+    padding: 11px 20px;
+    background: white;
+    color: #c0392b;
+    border: 1.5px solid #e8b4b0;
+    border-radius: 7px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.2s;
+  }
+  .btn-danger:hover { background: #fde8e8; }
+
+  /* Note */
+  .note-area {
+    width: 100%;
+    border: 1px solid #dde3ee;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 70px;
+    color: #1a1a2e;
+    background: white;
+  }
+  .note-area:focus { outline: none; border-color: #003C80; }
+
+  /* Print */
+  @media print {
+    body { background: white; }
+    .header { background: #003C80 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .score-band { background: #002966 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .actions { display: none; }
+    .elemento-header { cursor: default; }
+    .indicatori-wrap { max-height: none !important; overflow: visible !important; }
+    .chevron { display: none; }
+
+    /* Evita che un elemento (intestazione + righe indicatori) venga spezzato fra due pagine */
+    .elemento-block {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    /* Evita che una riga indicatore venga spezzata a metà */
+    .indicatore-row {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    /* Evita che le card generiche (anagrafica, comfort, note, terminologia) vengano spezzate */
+    .card {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    .comfort-item {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+    /* Mantiene insieme intestazione di un elemento con almeno la prima riga della sua tabella */
+    .elemento-header {
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+  }
+
+  @media(max-width: 600px) {
+    .field-grid { grid-template-columns: 1fr; }
+    .header-inner { padding: 18px 16px 14px; }
+    .header h1 { font-size: 19px; }
+    .score-band { padding: 12px 16px; }
+    .score-band-inner { gap: 14px; }
+    .score-block { min-width: 60px; }
+    .score-block .val { font-size: 22px; }
+    .score-bar-wrap { order: 10; flex: 1 0 100%; }
+    .esito-pill { font-size: 12px; padding: 7px 14px; }
+    .main { padding: 14px 10px 40px; }
+    .card-body { padding: 16px; }
+    .elemento-header { padding: 14px 16px; min-height: 44px; }
+    .elemento-title { font-size: 13.5px; }
+    .mini-bar { width: 50px; }
+    .indicatore-row { padding: 14px 16px; }
+    .actions { flex-direction: column; }
+    .actions button { width: 100%; }
+    .btn-primary, .btn-secondary, .btn-danger { padding: 13px 20px; font-size: 15px; }
+    .comfort-grid { gap: 10px; }
+    .si-no-btn { padding: 7px 14px; font-size: 13px; }
+  }
+
+  /* Touch target: tutti gli elementi interattivi restano comodamente toccabili */
+  @media (pointer: coarse) {
+    .pm-input { height: 42px; }
+    .riscontro-auto { height: 38px; }
+    .tipo-badge { padding: 9px 14px; }
+    .si-no-btn { min-height: 36px; }
+  }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div class="header-top">
+      <div>
+        <div style="font-size:11px; font-weight:600; letter-spacing:1.2px; opacity:0.6; text-transform:uppercase; margin-bottom:6px;">Vivenda S.p.A.</div>
+        <h1>Scheda di Controllo Qualità<br>Servizi Igienici</h1>
+        <p class="subtitle">Controllo di Risultato</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="score-band">
+  <div class="score-band-inner">
+    <div class="score-block">
+      <div class="val" id="val-A">94</div>
+      <div class="lbl">Somma A</div>
+    </div>
+    <div class="score-divider"></div>
+    <div class="score-block">
+      <div class="val" id="val-B">—</div>
+      <div class="lbl">Somma B</div>
+    </div>
+    <div class="score-divider"></div>
+    <div class="score-block">
+      <div class="val" id="val-ratio">—</div>
+      <div class="lbl">B / A</div>
+    </div>
+    <div class="score-bar-wrap">
+      <div class="score-bar-track">
+        <div class="score-bar-fill" id="score-bar" style="width:0%; background:#6b7a99;"></div>
+        <div class="score-bar-threshold" style="left:80%;"></div>
+      </div>
+      <div class="score-bar-label">Soglia di accettabilità: <strong style="color:rgba(255,255,255,0.8)">0.80</strong></div>
+    </div>
+    <div class="esito-pill nd" id="esito-pill">In attesa</div>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- ANAGRAFICA -->
+  <div class="card">
+    <div class="card-header"><h2>🗂 Dati identificativi</h2></div>
+    <div class="card-body">
+      <div class="field-grid">
+        <div class="field-group">
+          <label>Data</label>
+          <input type="date" id="data-controllo">
+        </div>
+        <div class="field-group">
+          <label>N° scheda</label>
+          <input type="text" placeholder="es. 026/2022/01" id="num-scheda">
+        </div>
+        <div class="field-group">
+          <label>Ora pulizia</label>
+          <input type="time" id="ora-pulizia">
+        </div>
+        <div class="field-group">
+          <label>Ora controllo</label>
+          <input type="time" id="ora-controllo">
+        </div>
+        <div class="field-group">
+          <label>Struttura</label>
+          <input type="text" id="struttura">
+        </div>
+        <div class="field-group">
+          <label>Ambiente</label>
+          <input type="text" id="ambiente">
+        </div>
+        <div class="field-group">
+          <label>Piano</label>
+          <input type="text" placeholder="es. 2° piano" id="piano">
+        </div>
+        <div class="field-group">
+          <label>Locale n°</label>
+          <input type="text" placeholder="es. 201" id="locale">
+        </div>
+        <div class="field-group">
+          <label>Destinazione d'uso</label>
+          <input type="text" id="dest-uso">
+        </div>
+      </div>
+
+      <div style="margin-top:16px;">
+        <label style="font-size:11px; font-weight:700; color:#6b7a99; text-transform:uppercase; letter-spacing:0.6px; display:block; margin-bottom:8px;">Tipo di controllo</label>
+        <span class="tipo-badge active" id="tipo-contraddittorio" onclick="setTipo('contraddittorio')">⚖️ In contraddittorio</span>
+        <span class="tipo-badge" id="tipo-autocontrollo" onclick="setTipo('autocontrollo')">✅ Autocontrollo</span>
+      </div>
+
+      <div class="field-grid" style="margin-top:14px;" id="firme-input">
+        <div class="field-group">
+          <label>Controllore Struttura</label>
+          <input type="text" placeholder="Nome e cognome" id="ctrl-ao">
+        </div>
+        <div class="field-group">
+          <label>Controllore Vivenda S.p.A.</label>
+          <input type="text" placeholder="Nome e cognome" id="ctrl-vivenda">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ELEMENTI DI CONTROLLO -->
+  <div id="elementi-container"></div>
+
+  <!-- COMFORT ALBERGHIERO -->
+  <div class="card">
+    <div class="card-header"><h2>🏨 Comfort alberghiero</h2></div>
+    <div class="card-body">
+      <div class="comfort-grid">
+        <div class="comfort-item">
+          <h4>Dispenser sapone mani</h4>
+          <div class="comfort-row">
+            <span class="comfort-label">Presenza sapone</span>
+            <div class="si-no-toggle">
+              <button class="si-no-btn si" onclick="toggleSiNo(this,'sapone-pres')">SÌ</button>
+              <button class="si-no-btn no" onclick="toggleSiNo(this,'sapone-pres')">NO</button>
+            </div>
+          </div>
+          <div class="comfort-row">
+            <span class="comfort-label">Efficienza dispenser</span>
+            <div class="si-no-toggle">
+              <button class="si-no-btn si" onclick="toggleSiNo(this,'sapone-eff')">SÌ</button>
+              <button class="si-no-btn no" onclick="toggleSiNo(this,'sapone-eff')">NO</button>
+            </div>
+          </div>
+        </div>
+        <div class="comfort-item">
+          <h4>Dispenser carta asciugamani</h4>
+          <div class="comfort-row">
+            <span class="comfort-label">Presenza carta mani</span>
+            <div class="si-no-toggle">
+              <button class="si-no-btn si" onclick="toggleSiNo(this,'carta-pres')">SÌ</button>
+              <button class="si-no-btn no" onclick="toggleSiNo(this,'carta-pres')">NO</button>
+            </div>
+          </div>
+          <div class="comfort-row">
+            <span class="comfort-label">Efficienza dispenser</span>
+            <div class="si-no-toggle">
+              <button class="si-no-btn si" onclick="toggleSiNo(this,'carta-eff')">SÌ</button>
+              <button class="si-no-btn no" onclick="toggleSiNo(this,'carta-eff')">NO</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTE -->
+  <div class="card">
+    <div class="card-header"><h2>📝 Note e osservazioni</h2></div>
+    <div class="card-body">
+      <textarea class="note-area" placeholder="Annotazioni aggiuntive, non conformità rilevate, azioni correttive suggerite..."></textarea>
+    </div>
+  </div>
+
+  <!-- TERMINOLOGIA -->
+  <div class="card">
+    <div class="card-header"><h2>ℹ️ Terminologie</h2></div>
+    <div class="card-body">
+      <ol style="padding-left:16px;">
+        <li style="font-size:12px; color:#6b7a99; margin-bottom:3px; line-height:1.5;"><strong>Elementi</strong>: superfici o oggetti sottoposti a verifica</li>
+        <li style="font-size:12px; color:#6b7a99; margin-bottom:3px; line-height:1.5;"><strong>Indicatori</strong>: fattori la cui presenza/assenza determina il livello di igiene</li>
+        <li style="font-size:12px; color:#6b7a99; margin-bottom:3px; line-height:1.5;"><strong>Tolleranze</strong>: quantità accettata di fattori di non qualità</li>
+        <li style="font-size:12px; color:#6b7a99; margin-bottom:3px; line-height:1.5;"><strong>Strumenti di controllo</strong>: dispositivi per misurare la presenza degli indicatori</li>
+        <li style="font-size:12px; color:#6b7a99; margin-bottom:3px; line-height:1.5;"><strong>Presenza Misurata</strong>: quantità di indicatori risultanti dal controllo. Il riscontro si calcola automaticamente confrontandola con la tolleranza: P.M. ≤ tolleranza → ✓ positivo; P.M. &gt; tolleranza → ✗ negativo</li>
+      </ol>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="btn-primary" onclick="window.print()">🖨️ Stampa / Salva PDF</button>
+    <button class="btn-secondary" onclick="resetAll()">↺ Azzera</button>
+    <button class="btn-secondary" onclick="setAllPositive()">✓ Imposta tutto conforme</button>
+    <button class="btn-danger" onclick="exportJSON()">⬇ Esporta dati (JSON)</button>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+/* maxOk = soglia numerica massima ammessa per considerare il riscontro positivo.
+   regola: P.M. <= maxOk => positivo (verde) ; P.M. > maxOk => negativo (rosso).
+   maxOk = null => indicatore con tolleranza "≥ 0" (qualsiasi valore è tollerato): sempre positivo. */
+const ELEMENTI = [
+  {
+    id: 'pavimento', label: 'Pavimento', color: '#003C80',
+    indicatori: [
+      { id: 'pav1', testo: 'Impolveramento', tolleranza: '≤ 1', maxOk: 1, strumento: 'Bassoumetro', peso: 1 },
+      { id: 'pav2', testo: 'Macchie ≤ 5 cm²', tolleranza: '≤ 2', maxOk: 2, strumento: 'Visivo', peso: 3 },
+      { id: 'pav3', testo: 'Macchie > 5 cm²', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 3 },
+      { id: 'pav4', testo: 'Residui di lavaggio', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 1 },
+      { id: 'pav5', testo: 'Rifiuti ≤ 5 cm²', tolleranza: '≤ 2', maxOk: 2, strumento: 'Visivo', peso: 2 },
+      { id: 'pav6', testo: 'Rifiuti > 5 cm²', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 2 },
+    ]
+  },
+  {
+    id: 'sup-oriz-2', label: 'Superfici orizzontali fino a 2 m', color: '#1a7a4a',
+    indicatori: [
+      { id: 'so2-1', testo: 'Impolveramento', tolleranza: '≤ 2', maxOk: 2, strumento: 'Bacharach', peso: 2 },
+      { id: 'so2-2', testo: 'Macchie ≤ 5 cm²', tolleranza: '≤ 2', maxOk: 2, strumento: 'Visivo', peso: 3 },
+      { id: 'so2-3', testo: 'Macchie > 5 cm²', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 3 },
+      { id: 'so2-4', testo: 'Rifiuti ≤ 5 cm²', tolleranza: '≤ 1', maxOk: 1, strumento: 'Visivo', peso: 2 },
+      { id: 'so2-5', testo: 'Rifiuti > 5 cm²', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 2 },
+    ]
+  },
+  {
+    id: 'sup-oriz-oltre', label: 'Superfici orizzontali oltre 2 m', color: '#6b7a99',
+    indicatori: [
+      { id: 'soo1', testo: 'Impolveramento', tolleranza: '≤ 2', maxOk: 2, strumento: 'Bacharach', peso: 2 },
+      { id: 'soo2', testo: 'Macchie ≤ 5 cm²', tolleranza: '≤ 2', maxOk: 2, strumento: 'Visivo', peso: 2 },
+      { id: 'soo3', testo: 'Macchie > 5 cm²', tolleranza: '≤ 1', maxOk: 1, strumento: 'Visivo', peso: 2 },
+      { id: 'soo4', testo: 'Sporco aderente', tolleranza: '≤ 1', maxOk: 1, strumento: 'Bacharach', peso: 1 },
+    ]
+  },
+  {
+    id: 'cestino', label: 'Cestino rifiuti', color: '#c0392b',
+    indicatori: [
+      { id: 'ces1', testo: 'Impolveramento', tolleranza: '≤ 1', maxOk: 1, strumento: 'Bacharach', peso: 2 },
+      { id: 'ces2', testo: 'Livello di riempimento', tolleranza: '≤ 25%', maxOk: 25, strumento: 'Visivo', peso: 2 },
+      { id: 'ces3', testo: 'Presenza sacco', tolleranza: 'Obblig. 0', maxOk: 0, strumento: 'Visivo', peso: 3 },
+      { id: 'ces4', testo: 'Sporco aderente', tolleranza: '≤ 0', maxOk: 0, strumento: 'Bacharach', peso: 3 },
+    ]
+  },
+  {
+    id: 'sup-vert-2', label: 'Superfici verticali fino a 2 m', color: '#8a6000',
+    indicatori: [
+      { id: 'sv2-1', testo: 'Impolveramento', tolleranza: '≤ 1', maxOk: 1, strumento: 'Bacharach', peso: 2 },
+      { id: 'sv2-2', testo: 'Macchie ≤ 5 cm²', tolleranza: '≤ 2', maxOk: 2, strumento: 'Visivo', peso: 3 },
+      { id: 'sv2-3', testo: 'Macchie > 5 cm²', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 3 },
+      { id: 'sv2-4', testo: 'Sporco aderente', tolleranza: '≤ 0', maxOk: 0, strumento: 'Bacharach', peso: 3 },
+    ]
+  },
+  {
+    id: 'sup-vert-oltre', label: 'Superfici verticali oltre 2 m', color: '#6b7a99',
+    indicatori: [
+      { id: 'svo1', testo: 'Impolveramento', tolleranza: '≤ 2', maxOk: 2, strumento: 'Bacharach', peso: 1 },
+      { id: 'svo2', testo: 'Macchie ≤ 5 cm²', tolleranza: '≤ 1', maxOk: 1, strumento: 'Visivo', peso: 1 },
+      { id: 'svo3', testo: 'Macchie > 5 cm²', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 1 },
+      { id: 'svo4', testo: 'Sporco aderente', tolleranza: '≤ 1', maxOk: 1, strumento: 'Bacharach', peso: 1 },
+    ]
+  },
+  {
+    id: 'lavabo', label: 'Lavabo', color: '#185FA5',
+    indicatori: [
+      { id: 'lav1', testo: 'Colature o macchie', tolleranza: '≤ 1', maxOk: 1, strumento: 'Visivo', peso: 2 },
+      { id: 'lav2', testo: 'Residui di lavaggio', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 3 },
+      { id: 'lav3', testo: 'Tracce di calcare', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 3 },
+    ]
+  },
+  {
+    id: 'wc', label: 'WC', color: '#003C80',
+    indicatori: [
+      { id: 'wc1', testo: 'Colature o macchie', tolleranza: '≤ 1', maxOk: 1, strumento: 'Visivo', peso: 3 },
+      { id: 'wc2', testo: 'Residui di lavaggio', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 2 },
+      { id: 'wc3', testo: 'Tracce di calcare', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 3 },
+    ]
+  },
+  {
+    id: 'scovolino', label: 'Scovolino / porta scovolino', color: '#3B6D11',
+    indicatori: [
+      { id: 'scov1', testo: 'Colature o macchie', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 3 },
+      { id: 'scov2', testo: 'Impolveramento', tolleranza: '≤ 0', maxOk: 0, strumento: 'Bacharach', peso: 3 },
+    ]
+  },
+  {
+    id: 'vasca', label: 'Vasca / doccia', color: '#533C89',
+    indicatori: [
+      { id: 'vas1', testo: 'Macchie ≤ 5 cm²', tolleranza: '≤ 2', maxOk: 2, strumento: 'Visivo', peso: 3 },
+      { id: 'vas2', testo: 'Macchie > 5 cm²', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 3 },
+      { id: 'vas3', testo: 'Residui di lavaggio', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 2 },
+      { id: 'vas4', testo: 'Tracce di calcare', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 3 },
+    ]
+  },
+  {
+    id: 'interruttori', label: 'Interruttori', color: '#6b7a99',
+    indicatori: [
+      { id: 'int1', testo: 'Impolveramento', tolleranza: '≤ 1', maxOk: 1, strumento: 'Bacharach', peso: 1 },
+      { id: 'int2', testo: 'Impronte', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 2 },
+      { id: 'int3', testo: 'Sporco aderente', tolleranza: '≤ 0', maxOk: 0, strumento: 'Bacharach', peso: 2 },
+    ]
+  },
+  {
+    id: 'distributori', label: 'Distributori materiale igienico', color: '#BA7517',
+    indicatori: [
+      { id: 'dis1', testo: 'Impolveramento', tolleranza: '≤ 1', maxOk: 1, strumento: 'Bacharach', peso: 2 },
+      { id: 'dis2', testo: 'Macchie ≤ 5 cm²', tolleranza: '≤ 1', maxOk: 1, strumento: 'Visivo', peso: 2 },
+      { id: 'dis3', testo: 'Macchie > 5 cm²', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 2 },
+      { id: 'dis4', testo: 'Presenza materiali consumo', tolleranza: 'Obblig. 0', maxOk: 0, strumento: 'Visivo', peso: 3 },
+      { id: 'dis5', testo: 'Residui detergenti', tolleranza: '≤ 0', maxOk: 0, strumento: 'Visivo', peso: 2 },
+    ]
+  },
+];
+
+const state = {};
+ELEMENTI.forEach(e => e.indicatori.forEach(i => { state[i.id] = null; }));
+
+function buildUI() {
+  const container = document.getElementById('elementi-container');
+  ELEMENTI.forEach((el, idx) => {
+    const div = document.createElement('div');
+    div.className = 'elemento-block';
+    div.id = 'block-' + el.id;
+
+    const totalA = el.indicatori.reduce((s, i) => s + i.peso, 0);
+
+    div.innerHTML = `
+      <div class="elemento-header" onclick="toggleBlock('${el.id}')">
+        <div class="elemento-title">
+          <div class="elem-color" style="background:${el.color}"></div>
+          ${el.label}
+        </div>
+        <div class="elemento-score">
+          <div class="mini-bar"><div class="mini-bar-fill" id="mini-${el.id}" style="width:0%; background:${el.color};"></div></div>
+          <span class="elem-ratio" id="ratio-${el.id}">—</span>
+          <span class="chevron" id="chev-${el.id}">▾</span>
+        </div>
+      </div>
+      <div class="indicatori-wrap ${idx === 0 ? 'open' : ''}" id="wrap-${el.id}">
+        ${el.indicatori.map(ind => `
+          <div class="indicatore-row">
+            <div class="indicatore-top">
+              <span class="indicatore-testo">${ind.testo}</span>
+              <span class="peso-badge peso-${ind.peso}">${ind.peso}</span>
+            </div>
+            <div class="indicatore-meta">
+              <span class="tolleranza">Tolleranza: ${ind.tolleranza}</span>
+              <span class="strumento">${ind.strumento}</span>
+            </div>
+            <div class="indicatore-bottom">
+              <div class="pm-field">
+                <label for="pm-${ind.id}">P.M.</label>
+                <input class="pm-input" type="number" inputmode="decimal" min="0" step="1" placeholder="0" id="pm-${ind.id}" data-maxok="${ind.maxOk === null ? '' : ind.maxOk}" oninput="onPMInput('${ind.id}')">
+              </div>
+              <span class="riscontro-auto" id="riscontro-${ind.id}">—</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    `;
+    container.appendChild(div);
+
+    if (idx === 0) {
+      document.getElementById('chev-' + el.id).classList.add('open');
+    }
+  });
+}
+
+function toggleBlock(id) {
+  const wrap = document.getElementById('wrap-' + id);
+  const chev = document.getElementById('chev-' + id);
+  wrap.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
+function onPMInput(id) {
+  const input = document.getElementById('pm-' + id);
+  const raw = input.value;
+  const badge = document.getElementById('riscontro-' + id);
+
+  if (raw === '') {
+    state[id] = null;
+    badge.className = 'riscontro-auto';
+    badge.textContent = '—';
+    updateScores();
+    return;
+  }
+
+  const pm = parseFloat(raw);
+  const maxOkRaw = input.dataset.maxok;
+  const maxOk = maxOkRaw === '' ? null : parseFloat(maxOkRaw);
+
+  // maxOk === null significa tolleranza "≥ 0": qualsiasi valore misurato è accettato.
+  const positivo = (maxOk === null) ? true : (pm <= maxOk);
+
+  state[id] = positivo ? 1 : 0;
+  badge.className = 'riscontro-auto ' + (positivo ? 'pos' : 'neg');
+  badge.textContent = positivo ? '✓' : '✗';
+  updateScores();
+}
+
+function updateScores() {
+  let totalA = 0, totalB = 0;
+  let anySet = false;
+
+  ELEMENTI.forEach(el => {
+    let elA = 0, elB = 0, elSet = 0;
+    el.indicatori.forEach(ind => {
+      elA += ind.peso;
+      if (state[ind.id] !== null) {
+        elB += ind.peso * state[ind.id];
+        elSet++;
+        anySet = true;
+      }
+    });
+    totalA += elA;
+    if (elSet > 0) totalB += elB;
+
+    const ratio = elSet > 0 ? elB / elA : null;
+    const ratioEl = document.getElementById('ratio-' + el.id);
+    const miniBar = document.getElementById('mini-' + el.id);
+    if (ratio !== null) {
+      ratioEl.textContent = ratio.toFixed(2);
+      ratioEl.style.color = ratio >= 0.8 ? '#1a7a4a' : '#c0392b';
+      miniBar.style.width = (ratio * 100).toFixed(0) + '%';
+      miniBar.style.background = ratio >= 0.8 ? '#1a7a4a' : '#c0392b';
+    } else {
+      ratioEl.textContent = '—';
+      ratioEl.style.color = '#aab2c8';
+      miniBar.style.width = '0%';
+    }
+  });
+
+  document.getElementById('val-A').textContent = totalA;
+  if (!anySet) {
+    document.getElementById('val-B').textContent = '—';
+    document.getElementById('val-ratio').textContent = '—';
+    document.getElementById('score-bar').style.width = '0%';
+    document.getElementById('score-bar').style.background = '#6b7a99';
+    const pill = document.getElementById('esito-pill');
+    pill.className = 'esito-pill nd';
+    pill.textContent = 'In attesa';
+  } else {
+    const ratio = totalB / totalA;
+    document.getElementById('val-B').textContent = totalB;
+    document.getElementById('val-ratio').textContent = ratio.toFixed(2);
+    const barW = Math.min(100, (ratio * 100)).toFixed(0);
+    const barColor = ratio >= 0.8 ? '#1a7a4a' : '#c0392b';
+    document.getElementById('score-bar').style.width = barW + '%';
+    document.getElementById('score-bar').style.background = barColor;
+    const pill = document.getElementById('esito-pill');
+    if (ratio >= 0.8) {
+      pill.className = 'esito-pill conforme';
+      pill.textContent = '✓ CONFORME';
+    } else {
+      pill.className = 'esito-pill non-conforme';
+      pill.textContent = '✗ NON CONFORME';
+    }
+  }
+}
+
+function setTipo(tipo) {
+  document.getElementById('tipo-contraddittorio').classList.toggle('active', tipo === 'contraddittorio');
+  document.getElementById('tipo-autocontrollo').classList.toggle('active', tipo === 'autocontrollo');
+  const aoRow = document.getElementById('ctrl-ao').closest('.field-group');
+  aoRow.style.opacity = tipo === 'autocontrollo' ? '0.4' : '1';
+  aoRow.style.pointerEvents = tipo === 'autocontrollo' ? 'none' : '';
+}
+
+function toggleSiNo(btn, key) {
+  const parent = btn.closest('.si-no-toggle');
+  parent.querySelectorAll('.si-no-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function setAllPositive() {
+  ELEMENTI.forEach(el => {
+    el.indicatori.forEach(ind => {
+      const pm = document.getElementById('pm-' + ind.id);
+      if (pm) {
+        pm.value = 0;
+        onPMInput(ind.id);
+      }
+    });
+  });
+}
+
+function resetAll() {
+  if (!confirm('Vuoi azzerare tutti i dati inseriti?')) return;
+  ELEMENTI.forEach(el => {
+    el.indicatori.forEach(ind => {
+      state[ind.id] = null;
+      const pm = document.getElementById('pm-' + ind.id);
+      const badge = document.getElementById('riscontro-' + ind.id);
+      if (pm) pm.value = '';
+      if (badge) { badge.className = 'riscontro-auto'; badge.textContent = '—'; }
+    });
+  });
+  ['struttura','ambiente','piano','locale','dest-uso',
+   'data-controllo','num-scheda','ora-pulizia','ora-controllo','ctrl-ao','ctrl-vivenda']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  document.querySelectorAll('.si-no-btn').forEach(b => b.classList.remove('active'));
+  updateScores();
+}
+
+function exportJSON() {
+  const data = {
+    scheda: 26,
+    data: document.getElementById('data-controllo').value,
+    struttura: document.getElementById('struttura').value,
+    ambiente: document.getElementById('ambiente').value,
+    locale: document.getElementById('locale').value,
+    riscontri: state,
+    esito: document.getElementById('esito-pill').textContent.trim(),
+    ratio: document.getElementById('val-ratio').textContent,
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'scheda26_' + (data.data || 'export') + '.json';
+  a.click();
+}
+
+buildUI();
+</script>
+</body>
+</html>
